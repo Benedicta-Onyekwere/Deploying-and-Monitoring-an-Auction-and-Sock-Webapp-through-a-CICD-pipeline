@@ -6,7 +6,7 @@
 
 # Step 1:
 # Create dockerpath
-dockerpath=django_project-app
+dockerpath=django-app
 
 # Step 2:  
 # Authenticate & tag
