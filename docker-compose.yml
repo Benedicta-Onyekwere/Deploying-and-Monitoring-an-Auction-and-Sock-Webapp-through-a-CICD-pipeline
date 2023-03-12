@@ -6,6 +6,11 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     ports:
       - "8000:8000"
+    volumes:
+      - .:/django
+    networks: 
+      - app_network
+
     depends_on:
       - db
     environment:
@@ -20,3 +25,6 @@ services:
 volumes:
   db_data:
 
+volumes:
+  db:
+    driver: local
