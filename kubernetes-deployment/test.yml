@@ -29,10 +29,10 @@ metadata:
   name: django-service
 spec:
   selector:
-    app: django
+    app: djan
   ports:
   - name: http
     protocol: TCP
     port: 80
     targetPort: 8000
-  type: LoadBalancer
+  type: NodePort
