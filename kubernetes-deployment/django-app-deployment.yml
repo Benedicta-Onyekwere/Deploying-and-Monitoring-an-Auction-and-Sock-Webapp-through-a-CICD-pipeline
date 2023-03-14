@@ -19,10 +19,14 @@ spec:
             - containerPort: 8000
           volumeMounts:
             - name: sqlite
-              mountPath: /app/db.sqlite3
+              mountPath: /commerce/db.sqlite3
       volumes:
-        - name: sqlite
-          emptyDir: {}
+        - name: django-settings-volume
+          configMap:
+            name: django-settings
+      # volumes:
+      #   - name: sqlite
+      #     emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
