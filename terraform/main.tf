@@ -49,7 +49,6 @@ resource "digitalocean_droplet" "server2" {
   name       = "server2"
   region     = "lon1"
   size       = "s-1vcpu-1gb"
-  ssh_keys   = [
     
 
   connection {
