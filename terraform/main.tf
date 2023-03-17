@@ -50,8 +50,7 @@ resource "digitalocean_droplet" "server2" {
   region     = "lon1"
   size       = "s-1vcpu-1gb"
   ssh_keys   = [
-    data.digitalocean_ssh_key.Exam-Project.id
-  ]
+    
 
   connection {
     type        = "ssh"
