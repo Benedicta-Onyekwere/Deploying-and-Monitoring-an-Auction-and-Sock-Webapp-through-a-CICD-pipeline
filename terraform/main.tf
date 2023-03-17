@@ -5,7 +5,7 @@ resource "digitalocean_droplet" "server1" {
   size       = "s-1vcpu-1gb"
 }  
 
-  #connection {
+  connection {
    # type        = "ssh"
    # user        = "root"
    # private_key = file("var.pvt_key") #("~/.ssh/id_rsa")
