@@ -95,3 +95,4 @@ resource "digitalocean_firewall" "server2" {
     source_addresses = ["0.0.0.0/0"]
   }
   
+}
