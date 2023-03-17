@@ -61,7 +61,8 @@ jobs:
             terraform plan
             terraform plan -var-file=secrets.tfvars
           environment:
-            TF_VAR_do_token: "${DO_API_TOKEN}"     
+            TF_VAR_do_token: "${DO_API_TOKEN}"
+            TF_VAR_pvt_key: "${PVT_API_KEY}"     
       - persist_to_workspace:
           root: .
           paths:

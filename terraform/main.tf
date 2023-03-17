@@ -5,11 +5,11 @@ resource "digitalocean_droplet" "server1" {
   size       = "s-1vcpu-1gb"
   
 
-#  connection {
- #   type        = "ssh"
-  #  user        = "root"
-  #  private_key = file("var.pvt_key") #("~/.ssh/id_rsa")
-  #  host        = self.ipv4_address
+  connection {
+    type        = "ssh"
+    user        = "root"
+    private_key = file("var.pvt_key") #("~/.ssh/id_rsa")
+    host        = self.ipv4_address
   }
 
 
@@ -51,12 +51,12 @@ resource "digitalocean_droplet" "server2" {
   size       = "s-1vcpu-1gb"
     
 
-  #connection {
-   # type        = "ssh"
-  #  user        = "root"
-   # private_key = file("var.pvt_key") #("~/.ssh/id_rsa")
-  #  host        = self.ipv4_address
- # }
+  connection {
+    type        = "ssh"
+    user        = "root"
+    private_key = file("var.pvt_key") #("~/.ssh/id_rsa")
+    host        = self.ipv4_address
+  }
 }
 
 # Define the firewall rules
