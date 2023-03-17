@@ -59,6 +59,10 @@ jobs:
           command: |
             cd terraform
             terraform plan
+            terraform plan \
+            -var "do_token=$DO_API_TOKEN" \
+            -var "pvt_key=$PVT_KEY" \
+            -out=tfplan
             terraform plan -var-file=secrets.tfvars
           environment:
             TF_VAR_do_token: "${DO_API_TOKEN}"
@@ -78,6 +82,7 @@ jobs:
           name: Terraform apply
           command: |
             cd terraform
+            terraform apply tfplan
             terraform apply -var-file=secrets.tfvars
             terraform apply -auto-approve
       - persist_to_workspace:
