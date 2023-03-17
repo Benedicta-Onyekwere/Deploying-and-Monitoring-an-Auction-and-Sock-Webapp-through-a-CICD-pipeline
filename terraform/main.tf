@@ -57,7 +57,7 @@ resource "digitalocean_droplet" "server2" {
    # private_key = file("var.pvt_key") #("~/.ssh/id_rsa")
   #  host        = self.ipv4_address
  # }
-#}
+}
 
 # Define the firewall rules
 resource "digitalocean_firewall" "server2" {
