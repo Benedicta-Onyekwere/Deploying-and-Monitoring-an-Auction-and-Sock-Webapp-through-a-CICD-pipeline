@@ -59,6 +59,9 @@ jobs:
           command: |
             cd terraform
             terraform plan
+            terraform plan -var-file=secrets.tfvars
+          environment:
+            TF_VAR_do_token: "${DO_API_TOKEN}"     
       - persist_to_workspace:
           root: .
           paths:
