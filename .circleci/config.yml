@@ -78,6 +78,7 @@ jobs:
           name: Terraform apply
           command: |
             cd terraform
+            terraform apply -var-file=secrets.tfvars
             terraform apply -auto-approve
       - persist_to_workspace:
           root: .
