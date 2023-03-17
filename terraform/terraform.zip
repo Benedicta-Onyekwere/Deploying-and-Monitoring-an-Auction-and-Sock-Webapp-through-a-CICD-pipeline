@@ -1,0 +1,6 @@
+" zip.vim version v32
+" Browsing zipfile /root/terraform.zip
+" Select a file with cursor and press ENTER
+
+terraform
+      
