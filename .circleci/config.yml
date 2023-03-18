@@ -83,7 +83,7 @@ jobs:
             -var "pvt_key=${PVT_KEY}" \
             -auto-approve
           environment: 
-            digitalocean: context/digitalocean
+            context: digitalocean
       - persist_to_workspace:
           root: .
           paths:
