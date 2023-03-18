@@ -13,6 +13,6 @@ variable "pvt_key" {}
 
 provider "digitalocean" {
   token = var.do_token
- # key = var.pvt_key
+  key = var.pvt_key
 }
 
