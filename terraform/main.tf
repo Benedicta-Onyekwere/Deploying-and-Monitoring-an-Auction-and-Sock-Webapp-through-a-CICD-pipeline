@@ -5,6 +5,8 @@ resource "digitalocean_droplet" "server1" {
   size       = "s-1vcpu-1gb"
 }  
 
+
+
   #connection {
    # type        = "ssh"
    # user        = "root"
