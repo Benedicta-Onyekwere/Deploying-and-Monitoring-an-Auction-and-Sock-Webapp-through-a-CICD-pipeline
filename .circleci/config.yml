@@ -61,8 +61,8 @@ jobs:
             terraform plan
             terraform plan -var-file=secrets.tfvars
           environment:
-            TF_VAR_do_token: "${TF_VAR_do_token}"
-            TF_VAR_pvt_key: "${TF_VAR_pvt_key}"     
+            DO_TOKEN: "${DO_TOKEN}"
+            PVT_KEY: "${PVT_KEY}"     
       - persist_to_workspace:
           root: .
           paths:
@@ -79,11 +79,11 @@ jobs:
           command: |
             cd terraform
             terraform apply -var-file=secrets.tfvars \
-            -var "do_token=${TF_VAR_do_token}" \
-            -var "pvt_key=${TF_VAR_pvt_key}" \
+            -var "do_token=${DO_TOKEN}" \
+            -var "pvt_key=${PVT_KEY}" \
             -auto-approve
       - context: 
-          name: staging
+          name: digitalocean
       - persist_to_workspace:
           root: .
           paths:
