@@ -78,12 +78,16 @@ jobs:
           name: Terraform apply
           command: |
             cd terraform
-            terraform apply -var-file=secrets.tfvars
-            terraform apply -auto-approve -var "do_token=${TF_VAR_do_token}" -var "pvt_key=${TF_VAR_pvt_key}"
+            terraform apply -var-file=secrets.tfvars \
+            -var "do_token=${TF_VAR_do_token}" \
+            -var "pvt_key=${TF_VAR_pvt_key}" \
+            -auto-approve
+    context: staging
       - persist_to_workspace:
-          root: .
-          paths:
-            - .
+        root: .
+        paths:
+          - .
+
       
   terraform-plan-destroy:
     docker:
