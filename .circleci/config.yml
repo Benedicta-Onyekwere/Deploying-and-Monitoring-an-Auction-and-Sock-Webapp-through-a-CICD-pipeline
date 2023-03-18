@@ -20,7 +20,6 @@ commands:
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
             sudo ./aws/install
-
   install_ansible:
     description: Install Ansible
     steps:
@@ -28,7 +27,6 @@ commands:
           name: Install Ansible
           command: |
             python3 -m pip install --user ansible
-
 jobs:
   hadolint:
     docker:
@@ -40,7 +38,6 @@ jobs:
           command: |
               cd django_project
               make lint
-
 ## DEPLOY INFRASTRUCTURE
   terraform-init:
     working_directory: /tmp/project
@@ -51,7 +48,7 @@ jobs:
       - run:
           name: Terraform init
           command: |
-            cd terraform
+            cd infra_prov_with_terraform
             terraform init -input=false
       - persist_to_workspace:
           root: .
@@ -67,7 +64,7 @@ jobs:
       - run:
           name: Terraform plan
           command: |
-            cd terraform
+            cd infra_prov_with_terraform
             terraform plan -out tfapply 
       - persist_to_workspace:
           root: .
@@ -83,7 +80,7 @@ jobs:
       - run:
           name: Terraform apply
           command: |
-            cd terraform
+            cd infra_prov_with_terraform
             terraform apply -auto-approve tfapply
       - persist_to_workspace:
           root: .
@@ -99,7 +96,7 @@ jobs:
       - run:
           name: terraform create destroy plan
           command: |
-            cd terraform
+            cd infra_prov_with_terraform
             terraform plan -destroy -out tfdestroy 
           when: on_fail
       - persist_to_workspace:
@@ -117,7 +114,7 @@ jobs:
       - run:
           name: terraform destroy
           command: |
-            cd terraform
+            cd infra_prov_with_terraform
             terraform apply -auto-approve tfdestroy
           when: on_fail
 
@@ -139,16 +136,76 @@ jobs:
             # Your code here
             cd .circleci/ansible
             ansible-playbook -i inventory.1 container-configurations.yml
-#workflows:
- # version: 2
- # django-deployment:
-  #  jobs:
-   #   - terraform-init
-    #  - terraform-plan:
-     #     requires: ["terraform-init"]
-      #- terraform-apply:
-       #   requires: ["terraform-plan"]
+  build:
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      - checkout
+
+      - run:
+        # installs a docker client that will be used to run the docker commands
+          name: Install Docker client
+          command: |
+            set -x
+            VER="17.03.0-ce"
+            curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
+            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            sudo mv /tmp/docker/* /usr/bin
+      
+      - setup_remote_docker
+
+      - run:
+          name: Build Docker image
+          command: |
+            cd django_project  
+            docker build -t $APP .
+      - run:
+          name: Push to Docker Hub
+          command: |
+            cd django_project
+            echo "$DOCKER_PASSWORD"
+            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+            docker tag $APP:latest $DOCKER_USERNAME/$APP
+            docker push $DOCKER_USERNAME/$APP
+            
+  deploy:
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      - checkout
+      - install_awscli
+      - run:
+          name: Install kubectl
+          command: |
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            chmod +x ./kubectl
+            sudo mv ./kubectl /usr/local/bin/kubectl
+      - run:
+          name: Configure kubectl
+          command: |
+            aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER_NAME
+      - run:
+          name: Deploy Docker image to EKS cluster
+          command: |
+            sed -i "s|IMAGE|$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_USERNAME/$APP:latest|g" kubernetes_cluster/*yml
+            kubectl apply -f kubernetes_cluster/
+            kubectl get pods
+            kubectl get services
+            
+            
+workflows:
+  version: 2
+  django-deployment:
+    jobs:
+#       - terraform-init
+#       - terraform-plan:
+#           requires: ["terraform-init"]
+#       - terraform-apply:
+#           requires: ["terraform-plan"]
       # - terraform-plan-destroy:
       #     requires: ["terraform-appy"]
       # - terraform-destroy:
-      #     requires: ["terraform-plan-destroy"]            
+      #     requires: ["terraform-plan-destroy"]  
+#       - build  
+     # - deploy
+#           requires: ["build"]
