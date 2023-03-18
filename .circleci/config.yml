@@ -82,8 +82,8 @@ jobs:
             -var "do_token=${DO_TOKEN}" \
             -var "pvt_key=${PVT_KEY}" \
             -auto-approve
-      - context: 
-          name: digitalocean
+          environment: 
+            digitalocean: context/digitalocean
       - persist_to_workspace:
           root: .
           paths:
