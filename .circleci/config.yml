@@ -51,7 +51,7 @@ jobs:
       - run:
           name: Terraform init
           command: |
-            cd infra_prov_with_terraform
+            cd terraform
             terraform init -input=false
       - persist_to_workspace:
           root: .
@@ -67,7 +67,7 @@ jobs:
       - run:
           name: Terraform plan
           command: |
-            cd infra_prov_with_terraform
+            cd terraform
             terraform plan -out tfapply 
       - persist_to_workspace:
           root: .
@@ -83,7 +83,7 @@ jobs:
       - run:
           name: Terraform apply
           command: |
-            cd infra_prov_with_terraform
+            cd terraform
             terraform apply -auto-approve tfapply
       - persist_to_workspace:
           root: .
@@ -99,7 +99,7 @@ jobs:
       - run:
           name: terraform create destroy plan
           command: |
-            cd infra_prov_with_terraform
+            cd terraform
             terraform plan -destroy -out tfdestroy 
           when: on_fail
       - persist_to_workspace:
@@ -117,12 +117,12 @@ jobs:
       - run:
           name: terraform destroy
           command: |
-            cd infra_prov_with_terraform
+            cd terraform
             terraform apply -auto-approve tfdestroy
           when: on_fail
 
 # CONFIGURE INFRASTRUCTURE
-  install-docker:
+  container-configurations:
     docker:
       - image: cimg/python:3.10
     steps: 
@@ -138,7 +138,7 @@ jobs:
           command: |
             # Your code here
             cd .circleci/ansible
-            ansible-playbook -i inventory.1 docker-configurations.yml
+            ansible-playbook -i inventory.1 container-configurations.yml
 workflows:
   version: 2
   django-deployment:
