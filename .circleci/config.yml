@@ -82,10 +82,10 @@ jobs:
             -var "do_token=${TF_VAR_do_token}" \
             -var "pvt_key=${TF_VAR_pvt_key}" \
             -auto-approve
-    context: staging
+      - context: staging
       - persist_to_workspace:
-        root: .
-        paths:
+          root: .
+          paths:
           - .
 
       
