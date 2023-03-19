@@ -145,12 +145,12 @@ jobs:
       parameters:
         cluster-name:
           description: |
-            aws-cluster
+            $EKS_CLUSTER_NAME
           type: string
       steps:
         - checkout
         - aws-eks/update-kubeconfig-with-authenticator:
-            cluster-name: aws-cluster
+            cluster-name: $EKS_CLUSTER_NAME
             install-kubectl: true
         - kubernetes/create-or-update-resource:
             get-rollout-status: true
