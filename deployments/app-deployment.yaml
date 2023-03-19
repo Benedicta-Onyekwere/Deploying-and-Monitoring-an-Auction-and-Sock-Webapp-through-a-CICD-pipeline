@@ -23,7 +23,7 @@ spec:
         kompose.version: 1.28.0 (c4137012e)
       creationTimestamp: null
       labels:
-        io.kompose.network/deploying-and-monitoring-an-auction-and-sock-webapp-through-a-cicd-pipeline-default: "true"
+        io.kompose.network/application-default: "true"
         io.kompose.service: app
     spec:
       containers:
