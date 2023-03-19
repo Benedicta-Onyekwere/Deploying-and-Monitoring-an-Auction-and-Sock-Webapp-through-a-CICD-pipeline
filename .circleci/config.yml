@@ -114,7 +114,7 @@ jobs:
       - run:
           name: Build Docker image
           command: | 
-            cd apllication
+            cd application
             docker build -t django_app .
       - run:
           name: Push to Docker Hub
