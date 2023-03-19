@@ -196,7 +196,7 @@ workflows:
           requires: ["hold-apply"]
       - terraform-plan-destroy:
           requires: ["terraform-apply"]
-      - hold-destroy: #
+      - hold-destroy:
           type: approval
           requires: ["terraform-plan-destroy"]
       - terraform-destroy:
@@ -204,4 +204,4 @@ workflows:
       - build-auction:
           requires: ["terraform-apply"]
       - deploy-auction:
-          requires: ["terraform-apply, build-auction"]
+          requires: ["terraform-apply"]
