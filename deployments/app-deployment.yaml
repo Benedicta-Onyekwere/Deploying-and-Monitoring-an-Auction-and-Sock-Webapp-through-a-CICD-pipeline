@@ -35,7 +35,7 @@ spec:
           env:
             - name: DEBUG
               value: "True"
-          image: app
+          image: bennieo/django_app
           name: app
           ports:
             - containerPort: 8000
