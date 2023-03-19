@@ -122,7 +122,7 @@ jobs:
             cd application
             echo "$DOCKER_PASSWORD"
             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-            docker tag $APP:latest $DOCKER_USERNAME/$MY_WEBAPP
+            docker tag $MY_WEBAPP:latest $DOCKER_USERNAME/$MY_WEBAPP
             docker push $DOCKER_USERNAME/$MY_WEBAPP
             
   # deploy-auction:
