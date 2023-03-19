@@ -11,7 +11,9 @@ services:
       - db
     environment:
       DEBUG: "True"
-      ALLOWED_HOSTS: "209.97.143.113"
+      # ALLOWED_HOSTS: ""
+    labels:
+      kompose.service.type: LoadBalancer
 
   db:
     image: "nouchka/sqlite3"

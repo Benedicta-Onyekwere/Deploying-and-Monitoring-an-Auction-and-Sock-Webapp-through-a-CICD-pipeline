@@ -1,16 +1,10 @@
 version: 2.1
 orbs:
-  slack: circleci/slack@4.10.1
   aws-cli: circleci/aws-cli@3.1.4
+  aws-eks: circleci/aws-eks@1.1.0
+  kubernetes: circleci/kubernetes@1.0.2
 
 commands:
-  notify_on_failure:
-    steps:
-      - slack/notify:
-          event: fail
-          channel: cicd-pipeline
-          template: basic_fail_1
-
   install_awscli:
     description: Install AWS CLI v2
     steps:
@@ -20,25 +14,9 @@ commands:
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
             sudo ./aws/install
-  install_ansible:
-    description: Install Ansible
-    steps:
-      - run:
-          name: Install Ansible
-          command: |
-            python3 -m pip install --user ansible
+
 jobs:
-  hadolint:
-    docker:
-      - image: cimg/python:3.10
-    steps:
-      - checkout
-      - run:
-          name: Test code indentation
-          command: |
-              cd django_project
-              make lint
-## DEPLOY INFRASTRUCTURE
+
   terraform-init:
     working_directory: /tmp/project
     docker:
@@ -48,7 +26,7 @@ jobs:
       - run:
           name: Terraform init
           command: |
-            cd infra_prov_with_terraform
+            cd terraform
             terraform init -input=false
       - persist_to_workspace:
           root: .
@@ -64,7 +42,7 @@ jobs:
       - run:
           name: Terraform plan
           command: |
-            cd infra_prov_with_terraform
+            cd terraform
             terraform plan -out tfapply 
       - persist_to_workspace:
           root: .
@@ -80,7 +58,7 @@ jobs:
       - run:
           name: Terraform apply
           command: |
-            cd infra_prov_with_terraform
+            cd terraform
             terraform apply -auto-approve tfapply
       - persist_to_workspace:
           root: .
@@ -96,14 +74,12 @@ jobs:
       - run:
           name: terraform create destroy plan
           command: |
-            cd infra_prov_with_terraform
+            cd terraform
             terraform plan -destroy -out tfdestroy 
-          when: on_fail
       - persist_to_workspace:
           root: .
           paths:
             - .
-   
 
   terraform-destroy:
     docker:
@@ -114,28 +90,9 @@ jobs:
       - run:
           name: terraform destroy
           command: |
-            cd infra_prov_with_terraform
-            terraform apply -auto-approve tfdestroy
-          when: on_fail
+            cd terraform
+            terraform destroy -auto-approve tfdestroy
 
-# CONFIGURE INFRASTRUCTURE
-  container-configurations:
-    docker:
-      - image: cimg/python:3.10
-    steps: 
-      - checkout
-      - install_awscli
-      - install_ansible
-      - add_ssh_keys:
-          fingerprints: ["56:a1:e8:28:97:7e:ea:fc:4f:6d:f7:03:95:a8:58:5d"]
-      - attach_workspace:
-          at: ~/
-      - run:
-          name: Configure server
-          command: |
-            # Your code here
-            cd .circleci/ansible
-            ansible-playbook -i inventory.1 container-configurations.yml
   build:
     docker:
       - image: cimg/python:3.10
@@ -156,56 +113,54 @@ jobs:
 
       - run:
           name: Build Docker image
-          command: |
-            cd django_project  
-            docker build -t $APP .
+          command: | 
+            docker build -t django_app .
       - run:
           name: Push to Docker Hub
           command: |
-            cd django_project
             echo "$DOCKER_PASSWORD"
             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-            docker tag $APP:latest $DOCKER_USERNAME/$APP
-            docker push $DOCKER_USERNAME/$APP
+            docker tag $APP:latest $DOCKER_USERNAME/$MY_WEBAPP
+            docker push $DOCKER_USERNAME/$MY_WEBAPP
             
-  deploy:
-    docker:
-      - image: cimg/python:3.10
+  deploy-auction:
+    executor: aws-eks/default
     steps:
       - checkout
-      - install_awscli
-      - run:
-          name: Install kubectl
-          command: |
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            chmod +x ./kubectl
-            sudo mv ./kubectl /usr/local/bin/kubectl
-      - run:
-          name: Configure kubectl
-          command: |
-            aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER_NAME
-      - run:
-          name: Deploy Docker image to EKS cluster
-          command: |
-            sed -i "s|IMAGE|$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_USERNAME/$APP:latest|g" kubernetes_cluster/*yml
-            kubectl apply -f kubernetes_cluster/
-            kubectl get pods
-            kubectl get services
-            
-            
+      - aws-eks/eks-authenticate:
+          cluster-name: $EKS_CLUSTER_NAME
+      - kubernetes/install-kubectl:
+          version: 1.22.2
+      - kubernetes/apply:
+          namespace: default
+          files:
+            - ./deployments/app-deployment.yaml
+            - ./deployments/app-tcp-service.yaml
+            - ./deployments/db-deployment.yaml
+            - ./deployments/db-data-persistentvolumeclaim.yaml
+            - ./deployments/deploying-and-monitoring-an-auction-and-sock-webapp-through-a-cicd-pipeline-default-networkpolicy.yaml
+    
+          
 workflows:
   version: 2
   django-deployment:
     jobs:
-#       - terraform-init
-#       - terraform-plan:
-#           requires: ["terraform-init"]
-#       - terraform-apply:
-#           requires: ["terraform-plan"]
-      # - terraform-plan-destroy:
-      #     requires: ["terraform-appy"]
-      # - terraform-destroy:
-      #     requires: ["terraform-plan-destroy"]  
-#       - build  
-     # - deploy
-#           requires: ["build"]
+      - terraform-init
+      - terraform-plan:
+          requires: ["terraform-init"]
+      - hold-apply:
+          type: approval
+          requires: ["terraform-plan"]
+      - terraform-apply:
+          requires: ["hold-apply"]
+      - terraform-plan-destroy:
+          requires: ["terraform-appy"]
+      - hold-destroy:
+          type: approval
+          requires: ["terraform-plan-destroy"]
+      - terraform-destroy:
+          requires: ["hold-destroy"]  
+      - build-auction:
+          requires: ["terraform-apply"]
+      - deploy-:
+          requires: ["terraform-apply, build-auction"]
