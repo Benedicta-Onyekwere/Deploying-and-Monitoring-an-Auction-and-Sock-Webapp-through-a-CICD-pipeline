@@ -93,7 +93,7 @@ jobs:
             cd terraform
             terraform destroy -auto-approve tfdestroy
 
-  build:
+  build-auction:
     docker:
       - image: cimg/python:3.10
     steps:
@@ -162,5 +162,5 @@ workflows:
           requires: ["hold-destroy"]  
       - build-auction:
           requires: ["terraform-apply"]
-      - deploy-:
+      - deploy-auction:
           requires: ["terraform-apply, build-auction"]
