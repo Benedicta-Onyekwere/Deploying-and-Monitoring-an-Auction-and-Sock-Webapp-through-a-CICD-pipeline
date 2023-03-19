@@ -204,4 +204,4 @@ workflows:
       - build-auction
           # requires: ["terraform-apply"]
       - deploy-auction:
-          requires: ["terraform-apply, build-auction"]
+          requires: ["build-auction"]
