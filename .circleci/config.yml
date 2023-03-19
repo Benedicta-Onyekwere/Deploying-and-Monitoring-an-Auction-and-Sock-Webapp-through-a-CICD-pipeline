@@ -75,7 +75,7 @@ jobs:
           name: terraform create destroy plan
           command: |
             cd terraform
-            terraform plan -destroy -out tfdestroy 
+            terraform plan -destroy -out tfdestroy
       - persist_to_workspace:
           root: .
           paths:
@@ -91,7 +91,7 @@ jobs:
           name: terraform destroy
           command: |
             cd terraform
-            terraform destroy -auto-approve tfdestroy
+            tterraform plan -destroy -out tfdestroy
 
   build-auction:
     docker:
@@ -196,14 +196,14 @@ workflows:
       #     requires: ["terraform-plan"]
       # - terraform-apply:
       #     requires: ["hold-apply"]
-      # - terraform-plan-destroy:
-      #     requires: ["terraform-apply"]
-      # - hold-destroy:
-      #     type: approval
-      #     requires: ["terraform-plan-destroy"]
-      # - terraform-destroy:
-      #     requires: ["hold-destroy"]  
-      - build-auction
+      - terraform-plan-destroy
           # requires: ["terraform-apply"]
-      - deploy-auction:
-          requires: ["build-auction"]
+      - hold-destroy:
+          type: approval
+          requires: ["terraform-plan-destroy"]
+      - terraform-destroy:
+          requires: ["hold-destroy"]  
+      # - build-auction:
+          # requires: ["terraform-apply"]
+      # - deploy-auction:
+      #     requires: ["build-auction"]
