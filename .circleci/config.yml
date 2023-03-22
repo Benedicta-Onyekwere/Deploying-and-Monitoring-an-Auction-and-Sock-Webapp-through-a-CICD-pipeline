@@ -111,7 +111,7 @@ jobs:
       
       - setup_remote_docker
 
-      - run: #
+      - run: 
           name: Build Docker image
           command: | 
             cd application
