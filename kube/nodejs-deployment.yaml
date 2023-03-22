@@ -3,27 +3,28 @@ kind: Deployment
 metadata:
   annotations:
     kompose.cmd: kompose convert
+    kompose.service.type: LoadBalancer
     kompose.version: 1.28.0 (c4137012e)
   creationTimestamp: null
   labels:
-    io.kompose.service: db
-  name: db
+    io.kompose.service: nodejs
+  name: nodejs
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: db
-  strategy:
-    type: Recreate
+      io.kompose.service: nodejs
+  strategy: {}
   template:
     metadata:
       annotations:
         kompose.cmd: kompose convert
+        kompose.service.type: LoadBalancer
         kompose.version: 1.28.0 (c4137012e)
       creationTimestamp: null
       labels:
-        io.kompose.network/node-app-app-network: "true"
-        io.kompose.service: db
+        io.kompose.network/project-app-network: "true"
+        io.kompose.service: nodejs
     spec:
       containers:
         - env:
@@ -31,35 +32,28 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   key: MONGO_DB
-                  name: env
-            - name: MONGO_INITDB_ROOT_PASSWORD
-              value: $MONGO_PASSWORD
-            - name: MONGO_INITDB_ROOT_USERNAME
-              value: $MONGO_USERNAME
+                  name: env-prod
+            - name: MONGO_HOSTNAME
+              value: db
             - name: MONGO_PASSWORD
               valueFrom:
                 configMapKeyRef:
                   key: MONGO_PASSWORD
-                  name: env
+                  name: env-prod
             - name: MONGO_PORT
               valueFrom:
                 configMapKeyRef:
                   key: MONGO_PORT
-                  name: env
+                  name: env-prod
             - name: MONGO_USERNAME
               valueFrom:
                 configMapKeyRef:
                   key: MONGO_USERNAME
-                  name: env
-          image: mongo:4.1.8-xenial
-          name: db
+                  name: env-prod
+          image: imaabasiee/nodejs
+          name: nodejs
+          ports:
+            - containerPort: 8080
           resources: {}
-          volumeMounts:
-            - mountPath: /data/db
-              name: dbdata
       restartPolicy: Always
-      volumes:
-        - name: dbdata
-          persistentVolumeClaim:
-            claimName: dbdata
 status: {}
