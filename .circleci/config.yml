@@ -93,14 +93,13 @@ jobs:
             cd terraform
             tterraform plan -destroy -out tfdestroy
 
-  build-auction:
+  build-nodejs-app:
     docker:
       - image: cimg/python:3.10
     steps:
       - checkout
 
       - run:
-        # installs a docker client that will be used to run the docker commands
           name: Install Docker client
           command: |
             set -x
@@ -114,18 +113,18 @@ jobs:
       - run: 
           name: Build Docker image
           command: | 
-            cd application
+            cd nodejs-application
             docker build -t django_app .
       - run:
           name: Push to Docker Hub
           command: |
-            cd application
+            cd nodejs-application
             echo "$DOCKER_PASSWORD"
             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
             docker tag $MY_WEBAPP:latest $DOCKER_USERNAME/$MY_WEBAPP 
             docker push $DOCKER_USERNAME/$MY_WEBAPP
             
-  # deploy-auction:
+  # deploy-nodejs-app:
   #   executor: aws-eks/default
   #   steps:
   #     - checkout
@@ -136,12 +135,12 @@ jobs:
   #     - kubernetes/apply:
   #         namespace: default
   #         files:
-  #           - ./deployments/app-deployment.yaml 
-  #           - ./deployments/app-tcp-service.yaml
-  #           - ./deployments/db-deployment.yaml
-  #           - ./deployments/db-data-persistentvolumeclaim.yaml
-  #           - ./deployments/deploying-and-monitoring-an-auction-and-sock-webapp-through-a-cicd-pipeline-default-networkpolicy.yaml
-  # deploy-auction:
+  #           - ./kubernetes-nodejs/app-deployment.yaml 
+  #           - ./kubernetes-nodejs/app-tcp-service.yaml
+  #           - ./kubernetes-nodejs/db-deployment.yaml
+  #           - ./kubernetes-nodejs/db-data-persistentvolumeclaim.yaml
+  #           - ./kubernetes-nodejs/deploying-and-monitoring-an-nodejs-app-and-sock-webapp-through-a-cicd-pipeline-default-networkpolicy.yaml
+  # deploy-nodejs-app:
   #     docker:
   #       - image: 'cimg/python:3.10'
   #     parameters:
@@ -156,10 +155,10 @@ jobs:
   #           install-kubectl: true
   #       - kubernetes/create-or-update-resource:
   #           get-rollout-status: true
-  #           resource-file-path: ./deployments/app-deployment.yaml, ./deployments/app-tcp-service.yaml, ./deployments/db-deployment.yaml, ./deployments/db-data-persistentvolumeclaim.yaml, ./deployments/deploying-and-monitoring-an-auction-and-sock-webapp-through-a-cicd-pipeline-default-networkpolicy.yaml
-  #           resource-name: deployments/auction 
+  #           resource-file-path: ./kubernetes-nodejs/app-deployment.yaml, ./kubernetes-nodejs/app-tcp-service.yaml, ./kubernetes-nodejs/db-deployment.yaml, ./kubernetes-nodejs/db-data-persistentvolumeclaim.yaml, ./kubernetes-nodejs/deploying-and-monitoring-an-nodejs-app-and-sock-webapp-through-a-cicd-pipeline-default-networkpolicy.yaml
+  #           resource-name: kubernetes-nodejs/nodejs-app 
 
-  deploy-auction:
+  deploy-nodejs-app:
     docker:
       - image: cimg/python:3.10
     steps:
@@ -178,10 +177,9 @@ jobs:
       - run:
           name: Deploy Docker image to EKS cluster
           command: |
-            sed -i "s|IMAGE|$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_USERNAME/$MY_WEBAPP:latest|g" deployments/*yaml
-            kubectl apply -f deployments/
-            kubectl get pods -n=default
-            kubectl get services -n=default
+            sed -i "s|IMAGE|$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_USERNAME/$MY_WEBAPP:latest|g" kubernetes-nodejs/*yaml
+            kubectl apply -f kubernetes-nodejs/
+            kubectl get services
 
   deploy-sock-shop:
     docker:
@@ -225,12 +223,12 @@ jobs:
       - run:
           name: Deploy Docker image to EKS cluster
           command: |
-            sed -i "s|IMAGE|$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_USERNAME/$MY_WEBAPP:latest|g" kubernetes/manifests-monitoring/*yaml
-            kubectl apply -f kubernetes/manifests-monitoring/
+            sed -i "s|IMAGE|$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_USERNAME/$MY_WEBAPP:latest|g" kubernetes-sock-shop/manifests-monitoring/*yaml
+            kubectl apply -f kubernetes-sock-shop/manifests-monitoring/
           
 workflows:
   version: 2
-  django-deployment:
+  nodejs-deployment:
     jobs:
       - terraform-init
       - terraform-plan:
@@ -247,11 +245,11 @@ workflows:
           requires: ["terraform-plan-destroy"]
       - terraform-destroy:
           requires: ["hold-destroy"]  
-      - build-auction:
+      - build-nodejs-app:
           requires: ["terraform-apply"]
-#       - deploy-auction:
-#           requires: [terraform-apply, build-auction]
+      - deploy-nodejs-app:
+          requires: [terraform-apply, build-nodejs-app]
       - deploy-sock-shop:
-          requires: [terraform-apply, build-auction]
+          requires: [terraform-apply, build-nodejs-app]
       - deploy-prometheus:
-          requires: [terraform-apply, build-auction]
+          requires: [terraform-apply, build-nodejs-app]
