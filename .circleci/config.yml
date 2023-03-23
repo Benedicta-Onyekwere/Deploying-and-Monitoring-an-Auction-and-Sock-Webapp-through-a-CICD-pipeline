@@ -299,7 +299,7 @@ workflows:
           requires: ["terraform-apply"]
       - deploy-nodejs-app:
           requires: [terraform-apply, build-nodejs-app]
-       - deploy-sock-shop:
+      - deploy-sock-shop:
           requires: [terraform-apply, build-nodejs-app]
       - deploy-prometheus:
           requires: [terraform-apply, build-nodejs-app]
