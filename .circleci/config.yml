@@ -24,7 +24,7 @@ jobs:
       - run:
           name: Build node-app
           command: |
-            cd node-project
+            cd nodejs-application
             npm install
             npm run build
 
@@ -38,7 +38,7 @@ jobs:
       - run:
           name: Test node-app
           command: |
-            cd node-project
+            cd nodejs-application
             npm install
             npm run test
 
