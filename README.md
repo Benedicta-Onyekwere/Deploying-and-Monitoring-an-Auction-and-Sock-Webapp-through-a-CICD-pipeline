@@ -9,6 +9,7 @@
 
 
 A fully functional Shark website in Nodejs. With configured admin panel.
+The Loadbalancers aplha-numeric IP addresses screenshot can be mapped to the screenshots shown above.
 
 View all screenshots [here](./auction-app-project/screenshots)
 
